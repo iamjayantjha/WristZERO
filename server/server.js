@@ -93,6 +93,38 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Q5 to Populate the database is below
+app.post('/api/watches', async (req, res) => {
+    const watch = new Watch(req.body);
+    try {
+        const savedWatch = await watch.save();
+        res.status(201).json(savedWatch);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+app.put('/api/watches/:id', async (req, res) => {
+    try {
+        const updatedWatch = await Watch.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedWatch) return res.status(404).json({ message: "Watch not found" });
+        res.json(updatedWatch);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// Delete a watch
+app.delete('/api/watches/:id', async (req, res) => {
+    try {
+        const deletedWatch = await Watch.findByIdAndDelete(req.params.id);
+        if (!deletedWatch) return res.status(404).json({ message: "Watch not found" });
+        res.json({ message: "Watch deleted" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 app.get('/api/watches', async (req, res) => {
     try {
         const watches = await Watch.find();
