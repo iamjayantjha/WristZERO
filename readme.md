@@ -32,7 +32,7 @@ Before running the server, it is important to import the data. You can import da
 2. Run the data import script:
 
     ```bash
-    node server/importData.js
+    node importData.js
     ```
 
 ## Running the Server
