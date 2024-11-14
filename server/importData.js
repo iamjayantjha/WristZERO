@@ -5,34 +5,36 @@ const csv = require('csv-parser');
 const Watch = require('./models/Watch');
 
 const importData = async () => {
-    await mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    });
-    const watches = [];
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
 
-    fs.createReadStream('luxury_watches.csv')
-        .pipe(csv())
-        .on('data', (row) => {
-            watches.push({
-                watch_name: row.watch_name,
-                brand: row.brand,
-                price: parseFloat(row.price),
-                imageUrl: row.image_url
+        const watches = [];
+
+        fs.createReadStream('luxury_watches.csv')
+            .pipe(csv())
+            .on('data', (row) => {
+                watches.push({
+                    watch_name: row.watch_name,
+                    brand: row.brand,
+                    price: parseFloat(row.price),
+                    imageUrl: row.image_url
+                });
+            })
+            .on('end', async () => {
+                try {
+                    await Watch.insertMany(watches);
+                    console.log('Data imported successfully!');
+                } catch (error) {
+                    console.error('Error importing data:', error);
+                } finally {
+                    mongoose.connection.close();
+                }
             });
-        })
-        .on('end', async () => {
-            try {
-                await Watch.insertMany(watches);
-                console.log('Data imported successfully!');
-            } catch (error) {
-                console.error('Error importing data:', error);
-            } finally {
-                mongoose.connection.close();
-            }
-        });
+    } catch (error) {
+        console.error('Error starting data import:', error);
+    }
 };
 
 importData()
-    .then(r => console.log('Data import process started'))
-    .catch(e => console.error('Error starting data import:', e));
+    .then(() => console.log('Data import process started'))
+    .catch(error => console.error('Error initializing importData:', error));
